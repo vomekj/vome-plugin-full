@@ -1,0 +1,29 @@
+{
+  "name": "全栈脚手架示例",
+  "key": "scaffold-full",
+  "version": "1.0.0",
+  "description": "前端 + 后端插件脚手架示例",
+  "author": "vome",
+  "hook": "scaffold-full-demo",
+  "singleton": true,
+  "logo": "assets/logo.png",
+  "readme": "README.md",
+  "config": {
+    "@local": {
+      "greeting": "hello-local"
+    },
+    "@prod": {
+      "greeting": "hello-prod"
+    }
+  },
+  "menus": [
+    {
+      "name": "脚手架全栈",
+      "router": "/scaffold-full",
+      "appKey": "scaffold-full",
+      "icon": "icon-app",
+      "orderNum": 99,
+      "isShow": true
+    }
+  ]
+}

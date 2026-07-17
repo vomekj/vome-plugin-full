@@ -1,0 +1,131 @@
+{
+  "plugin": {
+    "prefix": "plugin",
+    "body": [
+      "import { BasePlugin } from 'vome-plugin-runtime'",
+      "",
+      "/**",
+      " * ${1:描述}",
+      " */",
+      "export class ${2:Xxx}Plugin extends BasePlugin {",
+      "  async ready() {",
+      "    const cfg = (this.pluginInfo?.config ?? {}) as Record<string, unknown>",
+      "    $0",
+      "  }",
+      "",
+      "  async ${3:ping}() {",
+      "    return { ok: true, key: this.pluginInfo?.key }",
+      "  }",
+      "}",
+      "",
+      "export const Plugin = ${2:Xxx}Plugin",
+      ""
+    ],
+    "description": "Vome 插件：BasePlugin + export const Plugin（公开方法名需加入 obfuscator reservedNames）"
+  },
+  "plugin-method": {
+    "prefix": "plugin-method",
+    "body": [
+      "async ${1:method}(${2:payload}: ${3:unknown}) {",
+      "  $0",
+      "  return { ok: true }",
+      "}"
+    ],
+    "description": "插件公开方法（宿主 invoke；方法名须保留）"
+  },
+  "plugin-handlers": {
+    "prefix": "plugin-handlers",
+    "body": [
+      "/** module.json.routes 对应的 handler 名须与此导出一致 */",
+      "export const handlers = {",
+      "  async ${1:hello}(_req: Request) {",
+      "    return Response.json({ ok: true })",
+      "  },",
+      "}",
+      ""
+    ],
+    "description": "插件 HTTP handlers（配合 module.json.routes）"
+  },
+  "plugin-route": {
+    "prefix": "plugin-route",
+    "scope": "json",
+    "body": [
+      "{",
+      "  \"method\": \"${1|GET,POST|}\",",
+      "  \"path\": \"/${2:hello}\",",
+      "  \"handler\": \"${2:hello}\",",
+      "  \"summary\": \"${3:描述}\"",
+      "}"
+    ],
+    "description": "module.json.routes 单项"
+  },
+  "plugin-menu": {
+    "prefix": "plugin-menu",
+    "scope": "json",
+    "body": [
+      "{",
+      "  \"name\": \"${1:菜单名}\",",
+      "  \"router\": \"/${2:key}\",",
+      "  \"appKey\": \"${2:key}\",",
+      "  \"icon\": \"${3:icon-app}\",",
+      "  \"orderNum\": ${4:99},",
+      "  \"isShow\": true",
+      "}"
+    ],
+    "description": "module.json.menus 单项（appKey 通常等于插件 key）"
+  },
+  "plugin-vue-app": {
+    "prefix": "plugin-vue",
+    "scope": "vue",
+    "body": [
+      "<template>",
+      "  <main class=\"page\">",
+      "    <h1>${1:插件名}</h1>",
+      "    <p>$0</p>",
+      "  </main>",
+      "</template>",
+      "",
+      "<script setup lang=\"ts\">",
+      "defineOptions({ name: '${2:App}' })",
+      "</script>",
+      "",
+      "<style scoped>",
+      ".page {",
+      "  min-height: 100vh;",
+      "  margin: 0;",
+      "  display: grid;",
+      "  place-items: center;",
+      "  text-align: center;",
+      "  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;",
+      "  background: #f5f7fb;",
+      "  color: #1a1d26;",
+      "}",
+      "",
+      "h1 {",
+      "  margin: 0 0 0.5rem;",
+      "  font-size: 1.5rem;",
+      "  color: #4e5dff;",
+      "}",
+      "",
+      "p {",
+      "  margin: 0;",
+      "  opacity: 0.75;",
+      "}",
+      "</style>",
+      ""
+    ],
+    "description": "插件 Vue3 SFC 页面（源码在 web-src/，构建到 web/）"
+  },
+  "plugin-vue-main": {
+    "prefix": "plugin-main",
+    "scope": "typescript",
+    "body": [
+      "import { createApp } from 'vue'",
+      "import App from './App.vue'",
+      "",
+      "createApp(App).mount('#app')",
+      ""
+    ],
+    "description": "插件 Vue3 入口 main.ts（web-src/）"
+  }
+}

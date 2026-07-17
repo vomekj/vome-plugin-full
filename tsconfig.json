@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["bun-types", "node"],
+    "noEmit": true
+  },
+  "include": ["src", "web-src/**/*.ts", "web-src/**/*.vue", "vite.config.ts"]
+}
