@@ -4,7 +4,7 @@
 
 一次性提供 **后端钩子（`server/`）+ 前端微应用（`web/`）** 的插件脚手架。打包为 `.vome` 后，在 [vome-admin](https://gitee.com/vomekj/vome-admin) 安装启用，即可同时获得 **侧栏菜单（wujie 嵌入页）** 与 **宿主可 `invoke` 的服务端能力**。
 
-> 微茫科技开源项目。配套 [vome-service](https://gitee.com/vomekj/vome-service) + [vome-admin](https://gitee.com/vomekj/vome-admin)。
+> 威迈科技开源项目。配套 [vome-service](https://gitee.com/vomekj/vome-service) + [vome-admin](https://gitee.com/vomekj/vome-admin)。
 
 ## 何时选用
 
@@ -191,7 +191,7 @@ export const Plugin = DemoPlugin
 
 ## 许可证
 
-[MIT](./LICENSE) © VomeShop / 微茫科技
+[MIT](./LICENSE) © VomeShop / 威迈科技
 
 ---
 

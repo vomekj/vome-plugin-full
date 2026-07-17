@@ -4,7 +4,7 @@
 
 A plugin scaffold that ships **backend hooks (`server/`) and a frontend micro-app (`web/`)** in one package. Pack it as a `.vome`, install it in [vome-admin](https://gitee.com/vomekj/vome-admin), and you get both a **sidebar menu (wujie page)** and **host-callable server methods** via `invoke`.
 
-> Open-sourced by Vome / 微茫科技. Designed for [vome-service](https://gitee.com/vomekj/vome-service) + [vome-admin](https://gitee.com/vomekj/vome-admin).
+> Open-sourced by Vome / 威迈科技. Designed for [vome-service](https://gitee.com/vomekj/vome-service) + [vome-admin](https://gitee.com/vomekj/vome-admin).
 
 ## When to use
 
@@ -187,7 +187,7 @@ export const Plugin = DemoPlugin
 
 ## License
 
-[MIT](./LICENSE) © VomeShop / 微茫科技
+[MIT](./LICENSE) © VomeShop / 威迈科技
 
 ---
 
