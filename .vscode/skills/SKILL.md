@@ -1,73 +1,74 @@
 ---
-name: scaffold-full
+name: vome-plugin-full
 description: >-
-  全栈插件脚手架完整用法：BasePlugin + Vue3 web-src、hook/invoke/routes、menus/wujie、打包注意点。
-  Use when developing plugins/scaffold-full or a full-stack .vome plugin.
+  全栈插件（vome-plugin-full）：BasePlugin + Vue3 web-src、hook/invoke/routes、
+  menus/wujie、双 build 与 pack。Use when developing plugins/vome-plugin-full
+  or a full-stack .vome plugin.
 ---
 
-# 全栈插件脚手架（scaffold-full）
+# 全栈插件（vome-plugin-full）
 
-同时带 **后端钩子（server）** 与 **前端微应用（web）**。复制本目录后分别改 `src/`（后端）与 `web-src/`（前端），一次 `pack` 打出完整 `.vome`。
+> **目录**：`plugins/vome-plugin-full`  
+> **示例 key**：`scaffold-full`  
+> **入口**：[AGENTS.md](../AGENTS.md)
+
+= [纯后端](../../vome-plugin-service/.vscode/skills/SKILL.md) + [纯前端](../../vome-plugin-front/.vscode/skills/SKILL.md)；前端源码在 **`web-src/`**（`src/` 留给后端）。
+
+## IDE
+
+| 项 | 说明 |
+|----|------|
+| Snippets | `.vscode/plugin.code-snippets`（前后端前缀齐全） |
+| Skills | 建议 `.cursor/skills/vome-plugin-full/` |
+| 规范 | [规范.md](../../规范.md) |
 
 ## 能做什么
 
 | 能力 | 说明 |
 |------|------|
-| 钩子 + 公开方法 | 同纯后端：`Plugin` / `ready` / `invoke` / `getInstance` |
-| HTTP handlers | 可选 `handlers` + `routes` → `/admin/ext/{key}/…` |
+| 钩子 + 公开方法 | `Plugin` / `ready` / `invoke` / `getInstance` |
+| HTTP handlers | `handlers` + `routes` → `/admin/ext/{key}/…` |
 | 微应用 | `web/` + `menus.appKey` → wujie → `/vome/apps/{key}/` |
-| 环境配置 | `config.@local` / `@prod` → `this.pluginInfo.config` |
-| 缓存 | `this.cache`（宿主注入时） |
-
-= scaffold-service 的后端能力 + scaffold-front 的前端能力（前端源码目录名为 **`web-src/`**，因为 `src/` 已给后端）。
+| 环境配置 | `config.@local` / `@prod` |
+| 缓存 | `this.cache` |
 
 ## 命令
 
 ```bash
-cd plugins/scaffold-full
+cd plugins/vome-plugin-full
 bun install
 
-bun run dev:web       # 前端 Vite（web-src/）
-bun run build         # 后端 → server/index.js
-bun run build:web     # 前端 → web/
+bun run dev:web          # 前端 Vite（web-src/）
+bun run build            # 后端 → server/index.js
+bun run build:web        # 前端 → web/
 bun run build:obfuscate
-bun run pack          # 混淆后端 + build:web → release/scaffold-full.vome
+bun run pack             # 混淆后端 + build:web → release/scaffold-full.vome
 ```
 
-改 `key` 时同步改 `pack` 输出文件名。
+改 `key` 时同步：`module.json`、`menus`、`pack` 文件名、前后端文案。
 
 ## 目录与产物
 
 | 路径 | 用途 |
 |------|------|
-| `module.json` | 清单（hook、config、menus、routes…） |
-| `src/index.ts` | **后端**源码 → `server/index.js` |
-| `web-src/` | **前端** Vue3 源码（含自身 `index.html`） |
+| `module.json` | hook、config、menus、routes… |
+| `src/index.ts` | **后端** → `server/index.js` |
+| `web-src/` | **前端** Vue3（含 `index.html`） |
 | `vite.config.ts` | `root: web-src`，`outDir: web`，`base: './'` |
-| `server/` | 后端产物（pack 时混淆） |
-| `web/` | 前端产物 |
-| `assets/` | logo 等 |
-| `release/*.vome` | `module.json` + README + `server/` + `web/` + `assets/` |
+| `server/` / `web/` | 产物 |
+| `release/*.vome` | module + README + server + web + assets |
 
-## module.json 字段
+## module.json
 
-| 字段 | 必填 | 怎么用 |
-|------|------|--------|
-| `name` / `key` / `version` | 是 | `key` 不可为 `plugin` |
-| `hook` | 要当钩子用时建议有 | 有 hook 必须有可加载的 `Plugin` |
-| `singleton` | 否 | 示例默认 `true` |
-| `config.@local` / `@prod` | 否 | 勿用宿主 `.env` |
-| `routes` | 否 | 有则必须有 `handlers` 且每个 handler 存在 |
-| `menus` | 有前端时建议有 | `appKey` = `key` |
-| `logo` / `readme` / … | 否 | 元信息 |
+| 字段 | 说明 |
+|------|------|
+| `key` | 不可为 `plugin` |
+| `hook` | 有则必须可加载 `Plugin` |
+| `config.@local` / `@prod` | 勿用 `.env` |
+| `routes` | 有则 `handlers` 一一对应 |
+| `menus` | `appKey` = `key` |
 
-### menus（有 web 时）
-
-与纯前端相同：`name`、`router`、`appKey`（= `key`）、`icon`、`orderNum`、`isShow`。
-
-## 可以用什么
-
-### 后端（同 scaffold-service）
+## 后端（摘要）
 
 ```ts
 import { BasePlugin } from 'vome-plugin-runtime'
@@ -76,52 +77,68 @@ export class XxxPlugin extends BasePlugin {
   async ready() {
     const cfg = (this.pluginInfo?.config ?? {}) as Record<string, unknown>
   }
-
   async ping() {
     return { ok: true, key: this.pluginInfo?.key }
   }
 }
-
 export const Plugin = XxxPlugin
 
-// 可选
 export const handlers = {
-  async hello(ctx) {
+  async hello(ctx: {
+    body: unknown
+    query: Record<string, string>
+    params: Record<string, string>
+    headers: Headers
+    adminId?: number | string
+  }) {
     return { ok: true, adminId: ctx.adminId }
   },
 }
 ```
 
-- 宿主：`invoke(key|hook, 'ping')`、`getInstance(…)`
-- 路由：`GET/POST …` → **`/admin/ext/{key}{path}`**（登录 + 可选 `perms`）
-- `this.cache` / `this.pluginService` 用法同纯后端脚手架
+- 返回 **data**，不要 `Response.json`
+- 混淆：`plugins/scripts/obfuscator.options.ts` → `reservedNames`
 
-### 前端（同 scaffold-front，目录不同）
+## 前端（摘要）
 
-- 开发目录：`web-src/`（`main.ts`、`App.vue`、`index.html`）
-- 依赖：`vue` + Vite；可加依赖但须打进 `web/`
-- 入口：`createApp(App).mount('#app')`
-- 线上：`/vome/apps/{key}/` + wujie；**必须** `base: './'`
+- 只改 `web-src/`；产物 `web/`  
+- `base: './'`；wujie 内优先 hash 路由  
+- 调本插件：`/admin/ext/{key}/…`（snippet：`plugin-fetch-ext`）  
+- 调宿主：`/admin/…`（`plugin-fetch`）  
 
-前后端在包内并列：前端调后端可用宿主网关 `/admin/ext/{key}/…` 或你们自己的 API，注意鉴权与 cookie。
-
-## Snippets（`.vscode/plugin.code-snippets`）
+## Snippets
 
 | 前缀 | 用途 |
 |------|------|
 | `plugin` / `plugin-method` | 后端类与方法 |
-| `plugin-handlers` / `plugin-route` | handlers 与 routes |
+| `plugin-handlers` / `plugin-route` | handlers / routes |
+| `plugin-config` / `plugin-module` | 配置与清单骨架 |
 | `plugin-menu` | 菜单项 |
-| `plugin-vue` / `plugin-main` | 前端 SFC / 入口（写在 `web-src/`） |
+| `plugin-vue` / `plugin-main` | 前端（`web-src/`） |
+| `plugin-fetch-ext` | 调 `/admin/ext/{key}/…` |
+| `plugin-fetch` | 调宿主 `/admin/…` |
+| `plugin-invoke` | 宿主 invoke |
 
-## 需要注意什么
+## 注意
 
-1. **`src/` vs `web-src/`**：后端只动 `src/`；前端只动 `web-src/`。不要把 Vue 写进 `src/`，也不要手改 `web/`、`server/` 产物。
-2. **pack 顺序**：先混淆后端再 `build:web`；漏跑前端 build 会打出旧页面或空 `web/`。
-3. **混淆 reservedNames**：新增公开方法名写入 `plugins/scripts/obfuscator.options.ts`，否则 `invoke` 失败。
-4. **hook 与 web 可同时有**：安装要求至少 server/web/hook 之一；有 hook 必须有 `server/index.js`。
-5. **routes 与 handlers 一一对应**；纯钩子无 routes 时可不导出 handlers。
-6. **`appKey` = `key`**；`base: './'` 勿改绝对路径。
-7. **不要**打包 `node_modules`、源码目录；**不要**依赖宿主 `.env`。
-8. **改 key**：同步 `module.json`、menus、pack 文件名、前后端文案与已安装模块（重装）。
-9. **本地验证**：`dev:web` 只验前端；钩子 / `invoke` / `/admin/ext` 需安装到运行中的 service 后测。
+1. **`src/` ≠ `web-src/`**：后端 / 前端目录勿混。  
+2. **pack**：先混淆后端再 `build:web`；漏 build 会打出旧/空 `web/`。  
+3. **hook 与 web 可并存**；有 hook 必须有 `server/index.js`。  
+4. **`appKey` = `key`**；勿改绝对 `base`。  
+5. 勿打包 `node_modules` / 源码；勿依赖宿主 `.env`。  
+
+## 排错
+
+| 现象 | 排查 |
+|------|------|
+| invoke 无方法 | `reservedNames` + 重 pack |
+| ext 404 | routes path/method；key 是否一致 |
+| handler 500 缺失 | `handlers` 键 ≠ `routes.handler` |
+| wujie 白屏 | 未 `build:web`；`appKey`；`base` |
+| 前后端联调失败 | 先装到运行中的 service；`credentials`；`code===1000` |
+| 同 hook 冲突 | 同槽仅一个启用 |
+
+## 相关
+
+- VitePress：[plugin-full](/plugins/plugin-full/) · [开发](/plugins/plugin-full/develop) · [打包](/plugins/plugin-full/pack)
+- 兄弟脚手架：service / front 的 SKILL

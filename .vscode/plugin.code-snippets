@@ -1,7 +1,9 @@
 {
   "plugin": {
     "prefix": "plugin",
+    "scope": "typescript,javascript",
     "body": [
+      "// 宿主 loadPluginClass 会剥离该 import，并注入真实 BasePlugin",
       "import { BasePlugin } from 'vome-plugin-runtime'",
       "",
       "/**",
@@ -21,43 +23,101 @@
       "export const Plugin = ${2:Xxx}Plugin",
       ""
     ],
-    "description": "Vome 插件：BasePlugin + export const Plugin（公开方法名需加入 obfuscator reservedNames）"
+    "description": "BasePlugin + export const Plugin（公开方法名须加入 obfuscator reservedNames）"
   },
   "plugin-method": {
     "prefix": "plugin-method",
+    "scope": "typescript,javascript",
     "body": [
       "async ${1:method}(${2:payload}: ${3:unknown}) {",
       "  $0",
       "  return { ok: true }",
       "}"
     ],
-    "description": "插件公开方法（宿主 invoke；方法名须保留）"
+    "description": "公开方法：宿主 invoke；方法名须保留"
   },
   "plugin-handlers": {
     "prefix": "plugin-handlers",
+    "scope": "typescript,javascript",
     "body": [
-      "/** module.json.routes 对应的 handler 名须与此导出一致 */",
+      "/** module.json.routes 的 handler 名须与此导出一致；返回 data，勿返回 Response */",
       "export const handlers = {",
-      "  async ${1:hello}(_req: Request) {",
-      "    return Response.json({ ok: true })",
+      "  async ${1:hello}(ctx: {",
+      "    body: unknown",
+      "    query: Record<string, string>",
+      "    params: Record<string, string>",
+      "    headers: Headers",
+      "    adminId?: number | string",
+      "  }) {",
+      "    $0",
+      "    return { ok: true, adminId: ctx.adminId }",
       "  },",
       "}",
       ""
     ],
-    "description": "插件 HTTP handlers（配合 module.json.routes）"
+    "description": "HTTP handlers（ModuleHandlerCtx → data；/admin/ext/{key}/…）"
   },
   "plugin-route": {
     "prefix": "plugin-route",
     "scope": "json",
     "body": [
       "{",
-      "  \"method\": \"${1|GET,POST|}\",",
+      "  \"method\": \"${1|GET,POST,PUT,PATCH,DELETE|}\",",
       "  \"path\": \"/${2:hello}\",",
       "  \"handler\": \"${2:hello}\",",
-      "  \"summary\": \"${3:描述}\"",
+      "  \"summary\": \"${3:描述}\",",
+      "  \"perms\": \"${4:base:ext:hello}\"",
       "}"
     ],
-    "description": "module.json.routes 单项"
+    "description": "module.json.routes 单项（无权限可删 perms 行）"
+  },
+  "plugin-config": {
+    "prefix": "plugin-config",
+    "scope": "json",
+    "body": [
+      "\"config\": {",
+      "  \"@local\": {",
+      "    \"${1:greeting}\": \"${2:hello-local}\"",
+      "  },",
+      "  \"@prod\": {",
+      "    \"${1:greeting}\": \"${3:hello-prod}\"",
+      "  }",
+      "}"
+    ],
+    "description": "module.json 环境配置（禁止 .env）"
+  },
+  "plugin-module": {
+    "prefix": "plugin-module",
+    "scope": "json",
+    "body": [
+      "{",
+      "  \"name\": \"${1:插件名}\",",
+      "  \"key\": \"${2:my-full}\",",
+      "  \"version\": \"${3:1.0.0}\",",
+      "  \"description\": \"${4:描述}\",",
+      "  \"author\": \"${5:vome}\",",
+      "  \"hook\": \"${6:my-full-hook}\",",
+      "  \"singleton\": true,",
+      "  \"logo\": \"assets/logo.png\",",
+      "  \"readme\": \"README.md\",",
+      "  \"config\": {",
+      "    \"@local\": {},",
+      "    \"@prod\": {}",
+      "  },",
+      "  \"menus\": [",
+      "    {",
+      "      \"name\": \"${1:插件名}\",",
+      "      \"router\": \"/${2:my-full}\",",
+      "      \"appKey\": \"${2:my-full}\",",
+      "      \"icon\": \"icon-app\",",
+      "      \"orderNum\": 99,",
+      "      \"isShow\": true",
+      "    }",
+      "  ]",
+      "}",
+      ""
+    ],
+    "description": "全栈 module.json 骨架（hook + menus；key 不可为 plugin）"
   },
   "plugin-menu": {
     "prefix": "plugin-menu",
@@ -72,7 +132,7 @@
       "  \"isShow\": true",
       "}"
     ],
-    "description": "module.json.menus 单项（appKey 通常等于插件 key）"
+    "description": "module.json.menus 单项（appKey = key）"
   },
   "plugin-vue-app": {
     "prefix": "plugin-vue",
@@ -114,7 +174,7 @@
       "</style>",
       ""
     ],
-    "description": "插件 Vue3 SFC 页面（源码在 web-src/，构建到 web/）"
+    "description": "插件 Vue3 SFC（写在 web-src/，构建到 web/）"
   },
   "plugin-vue-main": {
     "prefix": "plugin-main",
@@ -127,5 +187,54 @@
       ""
     ],
     "description": "插件 Vue3 入口 main.ts（web-src/）"
+  },
+  "plugin-fetch-ext": {
+    "prefix": "plugin-fetch-ext",
+    "scope": "typescript,javascript",
+    "body": [
+      "/** 微应用调本插件网关 /admin/ext/{key}{path}（需登录；与 routes 对齐） */",
+      "async function ${1:callExt}() {",
+      "  const res = await fetch('/admin/ext/${2:scaffold-full}/${3:hello}', {",
+      "    method: '${4|GET,POST|}',",
+      "    credentials: 'include',",
+      "    headers: { 'Content-Type': 'application/json' },",
+      "    ${5:body: JSON.stringify({}),}",
+      "  })",
+      "  const json = await res.json()",
+      "  if (json.code !== 1000) throw new Error(json.message || '请求失败')",
+      "  return json.data",
+      "}",
+      ""
+    ],
+    "description": "前端调用本插件 /admin/ext/{key}/…"
+  },
+  "plugin-fetch-admin": {
+    "prefix": "plugin-fetch",
+    "scope": "typescript,javascript",
+    "body": [
+      "/** 同域调宿主 Admin API */",
+      "async function ${1:loadData}() {",
+      "  const res = await fetch('${2:/admin/base/dict/page}', {",
+      "    method: '${3|GET,POST|}',",
+      "    credentials: 'include',",
+      "    headers: { 'Content-Type': 'application/json' },",
+      "    ${4:body: JSON.stringify({ page: 1, size: 20 }),}",
+      "  })",
+      "  const json = await res.json()",
+      "  if (json.code !== 1000) throw new Error(json.message || '请求失败')",
+      "  return json.data",
+      "}",
+      ""
+    ],
+    "description": "微应用请求宿主 /admin/…"
+  },
+  "plugin-invoke": {
+    "prefix": "plugin-invoke",
+    "scope": "typescript,javascript",
+    "body": [
+      "await pluginInfoService.invoke('${1:scaffold-full}', '${2:ping}'${3:, payload})",
+      ""
+    ],
+    "description": "宿主 invoke 本插件公开方法"
   }
 }
