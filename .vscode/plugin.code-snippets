@@ -84,7 +84,7 @@
       "  }",
       "}"
     ],
-    "description": "module.json 环境配置（禁止 .env）"
+    "description": "module.json 环境配置"
   },
   "plugin-module": {
     "prefix": "plugin-module",
@@ -192,41 +192,23 @@
     "prefix": "plugin-fetch-ext",
     "scope": "typescript,javascript",
     "body": [
-      "/** 微应用调本插件网关 /admin/ext/{key}{path}（需登录；与 routes 对齐） */",
-      "async function ${1:callExt}() {",
-      "  const res = await fetch('/admin/ext/${2:scaffold-full}/${3:hello}', {",
-      "    method: '${4|GET,POST|}',",
-      "    credentials: 'include',",
-      "    headers: { 'Content-Type': 'application/json' },",
-      "    ${5:body: JSON.stringify({}),}",
-      "  })",
-      "  const json = await res.json()",
-      "  if (json.code !== 1000) throw new Error(json.message || '请求失败')",
-      "  return json.data",
-      "}",
+      "import { hostRequest, extPath } from './lib/host-api'",
+      "",
+      "const data = await hostRequest('${1|GET,POST|}', extPath('/${2:hello}')${3:, body})",
       ""
     ],
-    "description": "前端调用本插件 /admin/ext/{key}/…"
+    "description": "前端调本插件 /admin/ext/{key}/…（host-api.ts）"
   },
   "plugin-fetch-admin": {
     "prefix": "plugin-fetch",
     "scope": "typescript,javascript",
     "body": [
-      "/** 同域调宿主 Admin API */",
-      "async function ${1:loadData}() {",
-      "  const res = await fetch('${2:/admin/base/dict/page}', {",
-      "    method: '${3|GET,POST|}',",
-      "    credentials: 'include',",
-      "    headers: { 'Content-Type': 'application/json' },",
-      "    ${4:body: JSON.stringify({ page: 1, size: 20 }),}",
-      "  })",
-      "  const json = await res.json()",
-      "  if (json.code !== 1000) throw new Error(json.message || '请求失败')",
-      "  return json.data",
-      "}",
+      "import { hostRequest } from './lib/host-api'",
+      "",
+      "const data = await hostRequest('${1|GET,POST|}', '${2:/admin/base/auth/me}'${3:, body})",
       ""
     ],
-    "description": "微应用请求宿主 /admin/…"
+    "description": "微应用 hostRequest 调宿主"
   },
   "plugin-invoke": {
     "prefix": "plugin-invoke",

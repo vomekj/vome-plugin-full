@@ -1,144 +1,73 @@
 ---
 name: vome-plugin-full
 description: >-
-  全栈插件（vome-plugin-full）：BasePlugin + Vue3 web-src、hook/invoke/routes、
-  menus/wujie、双 build 与 pack。Use when developing plugins/vome-plugin-full
-  or a full-stack .vome plugin.
+  全栈插件（vome-plugin-full）：invoke/ext + web-src hostRequest、与 core 能力边界。
+  Use when developing plugins/vome-plugin-full.
 ---
 
 # 全栈插件（vome-plugin-full）
 
-> **目录**：`plugins/vome-plugin-full`  
-> **示例 key**：`scaffold-full`  
+> **目录**：`plugins/vome-plugin-full` · **示例 key**：`scaffold-full`  
 > **入口**：[AGENTS.md](../AGENTS.md)
 
-= [纯后端](../../vome-plugin-service/.vscode/skills/SKILL.md) + [纯前端](../../vome-plugin-front/.vscode/skills/SKILL.md)；前端源码在 **`web-src/`**（`src/` 留给后端）。
+= [纯后端能力](../../vome-plugin-service/.vscode/skills/SKILL.md) + [纯前端能力](../../vome-plugin-front/.vscode/skills/SKILL.md)；前端源码在 **`web-src/`**。
 
-## IDE
+## 与 vome-core 的能力边界
 
-| 项 | 说明 |
-|----|------|
-| Snippets | `.vscode/plugin.code-snippets`（前后端前缀齐全） |
-| Skills | 建议 `.cursor/skills/vome-plugin-full/` |
-| 规范 | [规范.md](../../规范.md) |
-
-## 能做什么
-
-| 能力 | 说明 |
+| 能力 | 状态 |
 |------|------|
-| 钩子 + 公开方法 | `Plugin` / `ready` / `invoke` / `getInstance` |
-| HTTP handlers | `handlers` + `routes` → `/admin/ext/{key}/…` |
-| 微应用 | `web/` + `menus.appKey` → wujie → `/vome/apps/{key}/` |
-| 环境配置 | `config.@local` / `@prod` |
-| 缓存 | `this.cache` |
+| BasePlugin / invoke / echo·ping | **可用** |
+| handlers + `/admin/ext/{key}/…` | **可用**（示例 `GET /hello`） |
+| config / cache | **可用** |
+| 微应用 + menus/wujie | **可用** |
+| `hostRequest` + Bearer + `/dev` 前缀 | **可用**（`web-src/lib/host-api.ts`） |
+| 前端调本插件 `extPath('/hello')` | **可用** |
+| 宿主完整 CRUD / IoC 写进插件包 | **不可用** |
+| 默认打入整包 admin CRUD | **不推荐** |
 
 ## 命令
 
 ```bash
 cd plugins/vome-plugin-full
-bun install
-
-bun run dev:web          # 前端 Vite（web-src/）
-bun run build            # 后端 → server/index.js
-bun run build:web        # 前端 → web/
-bun run build:obfuscate
-bun run pack             # 混淆后端 + build:web → release/scaffold-full.vome
+bun run dev:web
+bun run build && bun run build:web
+bun run pack   # 混淆后端 + build:web
 ```
 
-改 `key` 时同步：`module.json`、`menus`、`pack` 文件名、前后端文案。
+## 脚手架已演示
 
-## 目录与产物
-
-| 路径 | 用途 |
-|------|------|
-| `module.json` | hook、config、menus、routes… |
-| `src/index.ts` | **后端** → `server/index.js` |
-| `web-src/` | **前端** Vue3（含 `index.html`） |
-| `vite.config.ts` | `root: web-src`，`outDir: web`，`base: './'` |
-| `server/` / `web/` | 产物 |
-| `release/*.vome` | module + README + server + web + assets |
-
-## module.json
-
-| 字段 | 说明 |
-|------|------|
-| `key` | 不可为 `plugin` |
-| `hook` | 有则必须可加载 `Plugin` |
-| `config.@local` / `@prod` | 勿用 `.env` |
-| `routes` | 有则 `handlers` 一一对应 |
-| `menus` | `appKey` = `key` |
-
-## 后端（摘要）
+**后端** `src/index.ts`：`ping` / `echo` + `handlers.hello`  
+**清单** `routes`：`GET /hello`  
+**前端** `web-src/App.vue`：调 `/admin/ext/scaffold-full/hello` 与 `/admin/base/auth/me`
 
 ```ts
-import { BasePlugin } from 'vome-plugin-runtime'
-
-export class XxxPlugin extends BasePlugin {
-  async ready() {
-    const cfg = (this.pluginInfo?.config ?? {}) as Record<string, unknown>
-  }
-  async ping() {
-    return { ok: true, key: this.pluginInfo?.key }
-  }
-}
-export const Plugin = XxxPlugin
-
-export const handlers = {
-  async hello(ctx: {
-    body: unknown
-    query: Record<string, string>
-    params: Record<string, string>
-    headers: Headers
-    adminId?: number | string
-  }) {
-    return { ok: true, adminId: ctx.adminId }
-  },
-}
+import { hostRequest, extPath } from './lib/host-api'
+await hostRequest('GET', extPath('/hello'))
 ```
-
-- 返回 **data**，不要 `Response.json`
-- 混淆：`plugins/scripts/obfuscator.options.ts` → `reservedNames`
-
-## 前端（摘要）
-
-- 只改 `web-src/`；产物 `web/`  
-- `base: './'`；wujie 内优先 hash 路由  
-- 调本插件：`/admin/ext/{key}/…`（snippet：`plugin-fetch-ext`）  
-- 调宿主：`/admin/…`（`plugin-fetch`）  
 
 ## Snippets
 
 | 前缀 | 用途 |
 |------|------|
-| `plugin` / `plugin-method` | 后端类与方法 |
-| `plugin-handlers` / `plugin-route` | handlers / routes |
-| `plugin-config` / `plugin-module` | 配置与清单骨架 |
-| `plugin-menu` | 菜单项 |
-| `plugin-vue` / `plugin-main` | 前端（`web-src/`） |
-| `plugin-fetch-ext` | 调 `/admin/ext/{key}/…` |
-| `plugin-fetch` | 调宿主 `/admin/…` |
-| `plugin-invoke` | 宿主 invoke |
+| `plugin*` / `plugin-handlers` / `plugin-route` / `plugin-config` | 后端与清单 |
+| `plugin-menu` / `plugin-vue` / `plugin-main` | 菜单与前端 |
+| `plugin-fetch-ext` / `plugin-fetch` / `plugin-invoke` | 联调 |
 
 ## 注意
 
-1. **`src/` ≠ `web-src/`**：后端 / 前端目录勿混。  
-2. **pack**：先混淆后端再 `build:web`；漏 build 会打出旧/空 `web/`。  
-3. **hook 与 web 可并存**；有 hook 必须有 `server/index.js`。  
-4. **`appKey` = `key`**；勿改绝对 `base`。  
-5. 勿打包 `node_modules` / 源码；勿依赖宿主 `.env`。  
+1. `src/` 后端 · `web-src/` 前端，勿混  
+2. pack 须含最新 `server/` + `web/`  
+3. `reservedNames` 含 `ping`/`echo`/`hello`  
+4. `PLUGIN_KEY` 与 `module.json.key` 一致  
 
 ## 排错
 
 | 现象 | 排查 |
 |------|------|
-| invoke 无方法 | `reservedNames` + 重 pack |
-| ext 404 | routes path/method；key 是否一致 |
-| handler 500 缺失 | `handlers` 键 ≠ `routes.handler` |
-| wujie 白屏 | 未 `build:web`；`appKey`；`base` |
-| 前后端联调失败 | 先装到运行中的 service；`credentials`；`code===1000` |
-| 同 hook 冲突 | 同槽仅一个启用 |
+| ext 失败 | 插件未启用；routes；token；`/dev` 前缀 |
+| 仅前端旧 | 漏 `build:web` |
+| invoke 无方法 | reservedNames |
 
 ## 相关
 
-- VitePress：[plugin-full](/plugins/plugin-full/) · [开发](/plugins/plugin-full/develop) · [打包](/plugins/plugin-full/pack)
-- 兄弟脚手架：service / front 的 SKILL
+- VitePress：[能力边界](/plugins/#与-vome-core-的关系) · [develop](/plugins/plugin-full/develop) · [service](/plugins/plugin-full/service)

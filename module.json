@@ -2,7 +2,7 @@
   "name": "全栈脚手架示例",
   "key": "scaffold-full",
   "version": "1.0.0",
-  "description": "前端 + 后端插件脚手架示例",
+  "description": "前端微应用 + 后端钩子/ext 网关示例",
   "author": "vome",
   "hook": "scaffold-full-demo",
   "singleton": true,
@@ -16,6 +16,14 @@
       "greeting": "hello-prod"
     }
   },
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/hello",
+      "handler": "hello",
+      "summary": "全栈脚手架健康检查（需后台登录）"
+    }
+  ],
   "menus": [
     {
       "name": "脚手架全栈",

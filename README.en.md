@@ -166,7 +166,6 @@ export const Plugin = DemoPlugin
 
 ## Do not
 
-- Depend on host `.env` files  
 - Use `key: "plugin"`  
 - Bundle `node_modules` into the `.vome` (backend is bun-bundled)  
 
