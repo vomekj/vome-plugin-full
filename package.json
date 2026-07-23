@@ -9,7 +9,7 @@
     "build": "bun build ./src/index.ts --outfile ./server/index.js --target node --format cjs --packages=bundle --external vome-plugin-runtime",
     "obfuscate": "bun ../scripts/obfuscate-server.ts",
     "build:obfuscate": "bun run build && bun run obfuscate",
-    "pack": "bun run build:obfuscate && bun run build:web && mkdir -p ./release && rm -f ./release/scaffold-full.vome && zip -r ./release/scaffold-full.vome module.json README.md server web assets -x '*.DS_Store'"
+    "pack": "bun run build:obfuscate && bun run build:web && mkdir -p ./release && rm -f ./release/scaffold-full.vome && zip -r ./release/scaffold-full.vome module.json README.md locales server web assets -x '*.DS_Store'"
   },
   "dependencies": {
     "vue": "^3.5.13"
