@@ -2,7 +2,7 @@
   "app": {
     "name": "脚手架全栈",
     "hint": "全栈微应用 · /vome/apps/scaffold-full/",
-    "hostHint": "后端：invoke / handlers。前端：hostRequest 调宿主或本插件"
+    "hostHint": "后端：handlers → /admin/ext/{key}。前端：hostRequest / extPath / 可选 EPS。"
   },
   "common": {
     "confirm": "确认",
@@ -10,7 +10,7 @@
     "save": "保存",
     "probe": "探测宿主 /auth/me",
     "callExt": "调本插件 GET …/hello",
-    "loading": "请求中…",
-    "locale": "语言"
+    "probeEps": "EPS service 探测",
+    "loading": "请求中…"
   }
 }

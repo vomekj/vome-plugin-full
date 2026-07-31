@@ -29,7 +29,6 @@
       "name": "脚手架全栈",
       "router": "/scaffold-full",
       "appKey": "scaffold-full",
-      "icon": "icon-app",
       "orderNum": 99,
       "isShow": true
     }

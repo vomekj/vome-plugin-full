@@ -1,15 +1,10 @@
 /**
- * 插件微应用多语言：源包 locales/zh-CN.json，译包拉宿主 i18n
+ * 插件微应用多语言：源包 locales/zh-CN.json，非 zh-CN 拉宿主译包
+ * 语种跟随 Admin（props / bus），禁止插件内切语言 UI
  */
-import { computed, onMounted, ref, type ComputedRef, type Ref } from 'vue'
+import { computed, ref, type ComputedRef, type Ref } from 'vue'
 import { hostRequest, PLUGIN_KEY } from './host-api'
 import zhCN from '../../locales/zh-CN.json'
-
-export type I18nLangItem = {
-  code: string
-  name: string
-  flag?: string
-}
 
 export type PluginLocalePack = {
   langCode: string
@@ -18,6 +13,16 @@ export type PluginLocalePack = {
   version?: number
   packJson: Record<string, unknown>
 } | null
+
+export type UsePluginLocaleResult = {
+  pluginKey: string
+  locale: Ref<string>
+  messages: Ref<Record<string, unknown>>
+  localeLoading: Ref<boolean>
+  t: ComputedRef<(key: string, fallback?: string) => string>
+  setLocale: (code: string) => Promise<void>
+  init: () => Promise<void>
+}
 
 function getByPath(obj: unknown, path: string): string | undefined {
   if (!obj || typeof obj !== 'object') return undefined
@@ -52,51 +57,21 @@ export async function fetchPluginPack(
   )
 }
 
-export async function fetchEnabledLangs(): Promise<I18nLangItem[]> {
-  try {
-    const list = await hostRequest<I18nLangItem[]>(
-      'GET',
-      '/admin/i18n/lang/enabled',
-    )
-    if (Array.isArray(list) && list.length) return list
-  } catch {
-    /* fallback */
-  }
-  return [{ code: 'zh-CN', name: '简体中文', flag: '🇨🇳' }]
-}
-
-export type UsePluginLocaleResult = {
-  pluginKey: string
-  locale: Ref<string>
-  langs: Ref<I18nLangItem[]>
-  messages: Ref<Record<string, unknown>>
-  localeLoading: Ref<boolean>
-  t: ComputedRef<(key: string, fallback?: string) => string>
-  currentFlag: ComputedRef<string>
-  setLocale: (code: string) => Promise<void>
-  init: () => Promise<void>
-}
+let shared: UsePluginLocaleResult | null = null
 
 /**
- * @param pluginKey module.json.key（默认取 host-api.PLUGIN_KEY）
- * @param sourceZh 本地 zh-CN 源
+ * 单例：App 经 sync-host-locale 驱动 setLocale；页面只用 t('a.b')
  */
 export function usePluginLocale(
   pluginKey: string = PLUGIN_KEY,
   sourceZh: Record<string, unknown> = zhCN as Record<string, unknown>,
 ): UsePluginLocaleResult {
-  const storageKey = `vome_plugin_locale_${pluginKey}`
-  const locale = ref(localStorage.getItem(storageKey) || 'zh-CN')
-  const langs = ref<I18nLangItem[]>([
-    { code: 'zh-CN', name: '简体中文', flag: '🇨🇳' },
-  ])
+  if (shared) return shared
+
+  const locale = ref('zh-CN')
   const messages = ref<Record<string, unknown>>({ ...sourceZh })
   const localeLoading = ref(false)
   const t = computed(() => createT(messages.value))
-  const currentFlag = computed(() => {
-    const hit = langs.value.find((l) => l.code === locale.value)
-    return hit?.flag || '🏳️'
-  })
 
   async function loadPack(code: string) {
     if (code === 'zh-CN') {
@@ -114,12 +89,11 @@ export function usePluginLocale(
   }
 
   async function setLocale(code: string) {
-    if (localeLoading.value) return
     const next = String(code || '').trim() || 'zh-CN'
+    if (localeLoading.value) return
     localeLoading.value = true
     try {
       locale.value = next
-      localStorage.setItem(storageKey, next)
       await loadPack(next)
     } finally {
       localeLoading.value = false
@@ -127,31 +101,17 @@ export function usePluginLocale(
   }
 
   async function init() {
-    try {
-      langs.value = await fetchEnabledLangs()
-    } catch {
-      /* keep default */
-    }
-    if (!langs.value.some((l) => l.code === locale.value)) {
-      locale.value = 'zh-CN'
-      localStorage.setItem(storageKey, 'zh-CN')
-    }
     await loadPack(locale.value)
   }
 
-  onMounted(() => {
-    void init()
-  })
-
-  return {
+  shared = {
     pluginKey,
     locale,
-    langs,
     messages,
     localeLoading,
     t,
-    currentFlag,
     setLocale,
     init,
   }
+  return shared
 }

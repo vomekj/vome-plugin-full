@@ -1,73 +1,112 @@
 ---
 name: vome-plugin-full
 description: >-
-  全栈插件（vome-plugin-full）：invoke/ext + web-src hostRequest、与 core 能力边界。
-  Use when developing plugins/vome-plugin-full.
+  全栈插件脚手架：invoke/ext + web-src Hash 路由 / Pinia /
+  主题语种同步 / hostRequest / extPath / 可选 EPS。Use when developing plugins/vome-plugin-full.
 ---
 
 # 全栈插件（vome-plugin-full）
 
 > **目录**：`plugins/vome-plugin-full` · **示例 key**：`scaffold-full`  
-> **入口**：[AGENTS.md](../AGENTS.md)
+> **规范（边界/强制）**：[规范.md](../../规范.md)
 
-= [纯后端能力](../../vome-plugin-service/.vscode/skills/SKILL.md) + [纯前端能力](../../vome-plugin-front/.vscode/skills/SKILL.md)；前端源码在 **`web-src/`**。
-
-## 与 vome-core 的能力边界
-
-| 能力 | 状态 |
-|------|------|
-| BasePlugin / invoke / echo·ping | **可用** |
-| handlers + `/admin/ext/{key}/…` | **可用**（示例 `GET /hello`） |
-| config / cache | **可用** |
-| 微应用 + menus/wujie | **可用** |
-| `hostRequest` + Bearer + `/dev` 前缀 | **可用**（`web-src/lib/host-api.ts`） |
-| 前端调本插件 `extPath('/hello')` | **可用** |
-| 宿主完整 CRUD / IoC 写进插件包 | **不可用** |
-| 默认打入整包 admin CRUD | **不推荐** |
+= 后端钩子 + 前端微应用；前端源码在 **`web-src/`**。
 
 ## 命令
 
 ```bash
 cd plugins/vome-plugin-full
 bun run dev:web
-bun run build && bun run build:web
-bun run pack   # 混淆后端 + build:web
+bun run build:web
+bun run build:obfuscate
+bun run pack   # 混淆后端 + build:web → .vome
 ```
 
-## 脚手架已演示
+联调在 Admin wujie；单独 Vite 无完整 token / bus。
 
-**后端** `src/index.ts`：`ping` / `echo` + `handlers.hello`  
-**清单** `routes`：`GET /hello`  
-**前端** `web-src/App.vue`：调 `/admin/ext/scaffold-full/hello` 与 `/admin/base/auth/me`
+微应用 `menus`：`appKey` = `key`，页面无 icon；挂侧栏 **「无界渲染」**。
+
+## 开放封装用法
+
+### 调本插件 ext / 调宿主
 
 ```ts
-import { hostRequest, extPath } from './lib/host-api'
-await hostRequest('GET', extPath('/hello'))
+import { hostRequest, extPath } from '@/lib/host-api'
+await hostRequest('GET', extPath('/hello'))       // → /admin/ext/{key}/hello
+await hostRequest('GET', '/admin/base/auth/me')
+// 鉴权失败无感 refresh（对齐 Admin）
 ```
 
-## Snippets
-
-| 前缀 | 用途 |
+| 方法 | 作用 |
 |------|------|
-| `plugin*` / `plugin-handlers` / `plugin-route` / `plugin-config` | 后端与清单 |
-| `plugin-menu` / `plugin-vue` / `plugin-main` | 菜单与前端 |
-| `plugin-fetch-ext` / `plugin-fetch` / `plugin-invoke` | 联调 |
+| `PLUGIN_KEY` | 与 `module.json.key` 一致 |
+| `hostRequest` | Bearer + `/dev`\|`/prod`；无感 refresh；`code===1000` → `data` |
+| `hostClientRequest` | 同上；供 EPS |
+| `extPath(subPath)` | 拼 `/admin/ext/{PLUGIN_KEY}{subPath}` |
 
-## 注意
+### 可选 EPS
 
-1. `src/` 后端 · `web-src/` 前端，勿混  
-2. pack 须含最新 `server/` + `web/`  
-3. `reservedNames` 含 `ping`/`echo`/`hello`  
-4. `PLUGIN_KEY` 与 `module.json.key` 一致  
+```ts
+import { bootHostEps, service } from '@/lib/eps-client'
+await bootHostEps()
+```
+
+公开依赖：`vome-core/client` 的 `configureClient` / `createEps` / `getService` / `clearEpsCache`。
+
+### 后端被宿主调用
+
+```ts
+// handlers + module.json.routes → HTTP /admin/ext/{key}/…
+// 宿主进程内：
+await pluginInfoService.invoke('scaffold-full', 'ping')
+```
+
+后端骨架：
+
+```ts
+export class DemoPlugin extends BasePlugin {
+  async ready() {}
+  async ping() {}
+}
+export const Plugin = DemoPlugin
+export const handlers = {
+  async hello(ctx) { return { ok: true, adminId: ctx.adminId ?? null } },
+}
+```
+
+混淆：`reservedNames` 含 `Plugin`、`handlers`、公开方法与 handler 名。
+
+### 主题 / 语种
+
+```ts
+import { watchHostTheme } from '@/sync-host-theme'
+import { watchHostLocale } from '@/sync-host-locale'
+onMounted(() => {
+  stopTheme = watchHostTheme()
+  stopLocale = watchHostLocale()
+})
+```
+
+```ts
+import { usePluginLocale } from '@/lib/locale'
+const { t } = usePluginLocale()
+```
+
+### 新页面
+
+`web-src/pages/<path>/index.vue` → `/#/<path>`。
 
 ## 排错
 
 | 现象 | 排查 |
 |------|------|
-| ext 失败 | 插件未启用；routes；token；`/dev` 前缀 |
-| 仅前端旧 | 漏 `build:web` |
-| invoke 无方法 | reservedNames |
+| 401 | 未登录；非 wujie 同域 |
+| ext 404 | routes / handlers / key；模块未启用 |
+| invoke 无方法 | `reservedNames`；未启用 |
+| 主题 / 语种异常 | 未挂 `watchHostTheme` / `watchHostLocale` |
+| EPS 空 | 宿主未开 `vome.eps`；改用 `hostRequest` |
+| 菜单空白 | `appKey` ≠ `key` |
 
-## 相关
+## IDE
 
-- VitePress：[能力边界](/plugins/#与-vome-core-的关系) · [develop](/plugins/plugin-full/develop) · [service](/plugins/plugin-full/service)
+Snippets：`.vscode/plugin.code-snippets`（`plugin-fetch` / `plugin-fetch-ext` / `plugin-eps` / `plugin-t` / `plugin-invoke`）。

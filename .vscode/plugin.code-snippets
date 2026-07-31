@@ -203,12 +203,35 @@
     "prefix": "plugin-fetch",
     "scope": "typescript,javascript",
     "body": [
-      "import { hostRequest } from './lib/host-api'",
+      "import { hostRequest } from '@/lib/host-api'",
       "",
       "const data = await hostRequest('${1|GET,POST|}', '${2:/admin/base/auth/me}'${3:, body})",
       ""
     ],
     "description": "微应用 hostRequest 调宿主"
+  },
+  "plugin-eps": {
+    "prefix": "plugin-eps",
+    "scope": "typescript,javascript",
+    "body": [
+      "import { bootHostEps, service } from '@/lib/eps-client'",
+      "",
+      "await bootHostEps()",
+      "// 按宿主 EPS 挂载结果调用 service.<module>…",
+      "$0"
+    ],
+    "description": "可选 EPS：bootHostEps + service"
+  },
+  "plugin-locale": {
+    "prefix": "plugin-t",
+    "scope": "typescript,javascript,vue",
+    "body": [
+      "import { usePluginLocale } from '@/lib/locale'",
+      "",
+      "const { t } = usePluginLocale()",
+      "const label = t('${1:app.name}')"
+    ],
+    "description": "插件文案 t()（跟随宿主语种；勿做插件内切语言）"
   },
   "plugin-invoke": {
     "prefix": "plugin-invoke",

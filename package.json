@@ -12,13 +12,17 @@
     "pack": "bun run build:obfuscate && bun run build:web && mkdir -p ./release && rm -f ./release/scaffold-full.vome && zip -r ./release/scaffold-full.vome module.json README.md locales server web assets -x '*.DS_Store'"
   },
   "dependencies": {
-    "vue": "^3.5.13"
+    "pinia": "^3.0.4",
+    "vome-core": "^0.1.2",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.19",
     "@vitejs/plugin-vue": "^5.2.1",
     "bun-types": "latest",
     "typescript": "~5.7.2",
+    "unplugin-auto-import": "^19.3.0",
     "vite": "^6.0.7"
   }
 }
