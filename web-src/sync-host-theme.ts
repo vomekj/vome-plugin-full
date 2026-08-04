@@ -7,6 +7,8 @@ export type HostThemeSnapshot = {
 }
 
 const THEME_EVENT = 'vome-host-theme'
+/** 子应用 → 宿主：请求切换亮暗 */
+export const SET_HOST_THEME_EVENT = 'vome-set-host-theme'
 
 const THEME_VARS = [
 	'--brand',
@@ -93,6 +95,33 @@ export function applyHostTheme(theme?: HostThemeSnapshot | null): void {
 		self.dataset.theme = theme.themeId
 	}
 	clearChromeBackground()
+}
+
+export function readChromeThemeMode(): 'light' | 'dark' {
+	if (typeof document === 'undefined') return 'light'
+	const root = document.documentElement
+	if (root.classList.contains('dark')) return 'dark'
+	const id = String(root.dataset.theme || '').trim()
+	if (id === 'dark' || id === 'light') return id
+	return 'light'
+}
+
+/** 子应用请求宿主切主题；无宿主时只改本地 class */
+export function requestHostTheme(themeId: 'light' | 'dark'): void {
+	const id = themeId === 'dark' ? 'dark' : 'light'
+	try {
+		wujie()?.bus?.$emit?.(SET_HOST_THEME_EVENT, { themeId: id })
+	} catch {
+		/* ignore */
+	}
+	const self = document.documentElement
+	self.classList.toggle('dark', id === 'dark')
+	self.dataset.theme = id
+	clearChromeBackground()
+}
+
+export function toggleHostTheme(): void {
+	requestHostTheme(readChromeThemeMode() === 'dark' ? 'light' : 'dark')
 }
 
 /**
