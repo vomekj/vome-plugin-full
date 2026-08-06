@@ -11,9 +11,8 @@ export const PLUGIN_KEY = 'scaffold-full'
 
 function apiBase(): string {
   if (typeof location === 'undefined') return ''
-  if (location.pathname.startsWith('/dev/')) return '/dev'
-  if (location.pathname.startsWith('/prod/')) return '/prod'
-  return ''
+  if (location.pathname.startsWith('/dev')) return '/dev'
+  return '/api'
 }
 
 export function resolveHostUrl(path: string): string {

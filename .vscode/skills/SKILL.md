@@ -40,7 +40,7 @@ await hostRequest('GET', '/admin/base/auth/me')
 | 方法 | 作用 |
 |------|------|
 | `PLUGIN_KEY` | 与 `module.json.key` 一致 |
-| `hostRequest` | Bearer + `/dev`\|`/prod`；无感 refresh；`code===1000` → `data` |
+| `hostRequest` | Bearer + `/dev`\|`/api`；无感 refresh；`code===1000` → `data` |
 | `hostClientRequest` | 同上；供 EPS |
 | `extPath(subPath)` | 拼 `/admin/ext/{PLUGIN_KEY}{subPath}` |
 
