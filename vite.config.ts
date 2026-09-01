@@ -20,6 +20,10 @@ export default defineConfig({
     alias: {
       '@': webSrc,
     },
+    dedupe: ['vue', 'vue-router', 'pinia'],
+  },
+  optimizeDeps: {
+    exclude: ['vome-core'],
   },
   // Relative assets so wujie can load under /vome/apps/{key}/
   base: './',
