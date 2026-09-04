@@ -46,6 +46,7 @@ type WujieBridge = {
 	bus?: {
 		$on: (event: string, fn: (payload: HostThemeSnapshot) => void) => void
 		$off: (event: string, fn: (payload: HostThemeSnapshot) => void) => void
+		$emit?: (event: string, payload?: unknown) => void
 	}
 }
 

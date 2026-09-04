@@ -100,7 +100,7 @@ async function sharedRefreshHost(): Promise<boolean> {
 
 type HostRequestInit = {
   method?: string
-  body?: BodyInit | null
+  body?: unknown
   headers?: HeadersInit
   skipRefresh?: boolean
 }
@@ -115,7 +115,18 @@ export async function hostClientRequest<T = unknown>(
 
   const doFetch = async (token: string | null) => {
     const headers = new Headers(init?.headers)
-    if (!headers.has('content-type') && init?.body) {
+    const body =
+      init?.body == null
+        ? undefined
+        : typeof init.body === 'string' ||
+            init.body instanceof Blob ||
+            init.body instanceof FormData ||
+            init.body instanceof URLSearchParams ||
+            init.body instanceof ArrayBuffer ||
+            ArrayBuffer.isView(init.body)
+          ? (init.body as BodyInit)
+          : JSON.stringify(init.body)
+    if (!headers.has('content-type') && body) {
       headers.set('content-type', 'application/json')
     }
     if (token) headers.set('authorization', `Bearer ${token}`)
@@ -123,7 +134,7 @@ export async function hostClientRequest<T = unknown>(
       method,
       credentials: 'include',
       headers,
-      body: init?.body ?? undefined,
+      body,
     })
     const json = (await res.json()) as {
       code?: number
